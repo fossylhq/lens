@@ -132,7 +132,7 @@
             #fossylBranding > span {
               font-size: 14px;
               font-weight: bold;
-              text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.4), 1px -1px 0 rgba(0, 0, 0, 0.4), -1px 1px 0 rgba(0, 0, 0, 0.4), 1px 1px 0 rgba(0, 0, 0, 0.4);
+              
             }
             
             /* poster */
@@ -164,6 +164,7 @@
               font-size: 18px;
               color: #fff;
               text-align: center;
+              
             }
             #loadingWrap > #loadingBar {
               width: 100%;
@@ -898,6 +899,15 @@
   box-shadow: none;
 }
 
+/* hide side buttons until viewer finishes loading */
+#sideActions {
+  transition: opacity 0.35s ease;
+}
+#sideActions.fossyl-loading {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* countdown ring shown before modal */
 #fossyl-countdown-ring {
   display: none;
@@ -941,6 +951,43 @@
   text-anchor: middle;
 }
 
+/* gate overlay over side buttons */
+#fossyl-btn-gate {
+  position: absolute;
+  inset: -6px;
+  z-index: 10;
+  cursor: not-allowed;
+  border-radius: 18px;
+}
+.fossyl-btn-locked {
+  opacity: 0.4 !important;
+  transition: opacity 200ms ease !important;
+}
+
+/* toast nudge */
+#fossyl-lock-toast {
+  position: fixed;
+  right: max(76px, calc(env(safe-area-inset-right) + 76px));
+  top: 50%;
+  transform: translateY(-50%) translateX(8px);
+  z-index: 99997;
+  background: rgba(17, 24, 39, 0.92);
+  color: #fff;
+  font-family: 'Manrope', 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 8px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease, transform 200ms ease;
+  white-space: nowrap;
+}
+#fossyl-lock-toast.visible {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
 </style>
         <script type="module">
             const createImage = (url) => {
@@ -951,7 +998,7 @@
 
             const url = new URL(location.href);
 
-            const posterUrl = url.searchParams.get('poster') || 'https://files.catbox.moe/tctv9m.webp';
+            const posterUrl = url.searchParams.get('poster') || 'https://files.catbox.moe/oowxsg.png';
             const skyboxUrl = url.searchParams.get('skybox');
             const collisionUrl = url.searchParams.get('collision') ?? url.searchParams.get('voxel');
             const settingsUrl = url.searchParams.has('settings') ? url.searchParams.get('settings') : './settings.json';
@@ -81260,6 +81307,7 @@ export { main };
 
   </div>
 </div>
+<div id="fossyl-lock-toast">Submit the form to unlock</div>
 <!-- ── /Fossyl lead-capture modal ──────────────────────────────────── -->
 
 <script>
@@ -81271,86 +81319,296 @@ export { main };
   var SEND_OTP_ENDPOINT   = '/send-otp';
   var VERIFY_OTP_ENDPOINT = '/verify-otp';
   var TIMER_SECONDS       = 20;
-  var RESEND_COOLDOWN     = 30;   // seconds before Send OTP re-enables
+  var RESEND_COOLDOWN     = 30;
 
-  // ── Supabase config (baked in at injection time) ────────────────
   var SUPABASE_URL      = 'https://ejypauevukftgbbbnqdg.supabase.co';
   var SUPABASE_ANON_KEY = 'sb_publishable_ZmOuLTSoWD9-bj1ffZ-EWw_6chDrxZj';
-  var PROPERTY_ID       = 'UB000001';
+  var PROPERTY_CODE     = 'UB00001';
 
-  // ── localStorage key ──────────────────────────────────────────────
-  var STORAGE_KEY = 'fossyl_lead_id';
+  var LS_LEAD_ID       = 'fossyl_lead_id';
+  var LS_LEAD_VERIFIED = 'fossyl_lead_verified';
+  var SS_ANON_SESSION  = 'fossyl_anonymous_session_id';
+  var SS_VIEW_ID       = 'fossyl_view_id';
 
-  // ── Returning visitor: skip form entirely ─────────────────────────
-  // If a UUID is already stored this device has verified before.
-  // Silently append the current property to their lead record and exit.
-  var storedLeadId = null;
-  try { storedLeadId = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+  // ── Active duration tracking (visible + focused time only) ────────
+  var activeSeconds = 0;
+  var activeStart   = null;
+  var isActive      = false;
 
-  if (storedLeadId) {
-    fetch(SUPABASE_URL + '/rest/v1/rpc/add_property_to_lead', {
+  function startActive() {
+    if (!isActive) { isActive = true; activeStart = performance.now(); }
+  }
+  function pauseActive() {
+    if (isActive && activeStart !== null) {
+      activeSeconds += (performance.now() - activeStart) / 1000;
+      activeStart = null;
+      isActive    = false;
+    }
+  }
+  function getActiveDuration() {
+    var extra = (isActive && activeStart !== null)
+      ? (performance.now() - activeStart) / 1000 : 0;
+    return Math.round(activeSeconds + extra);
+  }
+
+  if (document.visibilityState === 'visible') startActive();
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') { startActive(); } else { pauseActive(); }
+  });
+  window.addEventListener('focus', startActive);
+  window.addEventListener('blur',  pauseActive);
+
+  // ── State ─────────────────────────────────────────────────────────
+  var anonymousSessionId = null;
+  var viewId             = null;
+  var otpVerified        = true;
+  var interacted         = false;
+  var timerStarted       = false;
+  var viewerLoaded       = false;
+  var countdownId        = null;
+  var remaining          = TIMER_SECONDS;
+  var resendTimer        = null;
+  var CIRC               = 2 * Math.PI * 20;
+
+  // ── Supabase RPC helper ───────────────────────────────────────────
+  function rpc(name, params) {
+    return fetch(SUPABASE_URL + '/rest/v1/rpc/' + name, {
       method:  'POST',
       headers: {
         'Content-Type':  'application/json',
         'apikey':        SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
       },
-      body: JSON.stringify({
-        p_lead_id:    storedLeadId,
-        p_property_id: PROPERTY_ID
-      })
-    }).catch(function (err) {
-      console.warn('[Fossyl] Silent property log failed:', err);
-    });
-    return; // ← skip all form setup, countdown, and event listeners
+      body: JSON.stringify(params)
+    }).then(function (r) { return r.json(); });
   }
 
-  // ── Elements ──────────────────────────────────────────────────────
-  var overlay        = document.getElementById('fossyl-modal-overlay');
-  var phoneInput     = document.getElementById('fossyl-phone');
-  var sendOtpBtn     = document.getElementById('fossyl-send-otp-btn');
-  var otpRow         = document.getElementById('fossyl-otp-row');
-  var otpInput       = document.getElementById('fossyl-otp');
-  var verifyOtpBtn   = document.getElementById('fossyl-verify-otp-btn');
-  var submitBtn      = document.getElementById('fossyl-submit-btn');
-  var phoneStatus    = document.getElementById('fossyl-phone-status');
-  var otpStatus      = document.getElementById('fossyl-otp-status');
-  var verifiedBadge  = document.getElementById('fossyl-verified-badge');
-  var ring           = document.getElementById('fossyl-countdown-ring');
-  var ringProg       = ring.querySelector('circle.prog');
-  var ringText       = document.getElementById('fossyl-countdown-text');
+  // ── Session teardown ─────────────────────────────────────────────
+  // fetch with keepalive:true survives page unload and handles CORS
+  // correctly. sendBeacon with application/json triggers a preflight
+  // OPTIONS that the browser abandons during unload, so the POST
+  // never arrives.
+  function endSessions() {
+    pauseActive();
+    var dur     = getActiveDuration();
+    var base    = SUPABASE_URL + '/rest/v1/rpc/';
+    var headers = {
+      'Content-Type':  'application/json',
+      'apikey':        SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+    };
+    if (anonymousSessionId) {
+      fetch(base + 'end_anonymous_session', {
+        method: 'POST', headers: headers, keepalive: true,
+        body: JSON.stringify({ p_session_id: anonymousSessionId, p_duration_seconds: dur })
+      });
+    }
+    if (viewId) {
+      fetch(base + 'end_view_session', {
+        method: 'POST', headers: headers, keepalive: true,
+        body: JSON.stringify({ p_view_id: viewId, p_duration_seconds: dur })
+      });
+    }
+  }
+  window.addEventListener('pagehide',     endSessions);
+  window.addEventListener('beforeunload', endSessions);
 
-  // ── State ─────────────────────────────────────────────────────────
-  var interacted    = false;
-  var timerStarted  = false;
-  var countdownId   = null;
-  var remaining     = TIMER_SECONDS;
-  var otpVerified   = true;
-  var resendTimer   = null;
+  // ── Viewer interaction event recording ───────────────────────────
+  var firedEvents = {};
 
-  var CIRC          = 2 * Math.PI * 20;   // ≈ 125.66
+  function recordEvent(eventType, metadata) {
+    if (firedEvents[eventType] || !viewId) return;
+    firedEvents[eventType] = true;
+    rpc('record_event', {
+      p_view_id: viewId, p_event_type: eventType, p_metadata: metadata || {}
+    }).catch(function (e) { console.warn('[Fossyl] record_event:', e); });
+  }
 
-  // ── Helper: set status text ───────────────────────────────────────
+  function attachViewerListeners() {
+    var fp = document.getElementById('floorplanBtn');
+    var ag = document.getElementById('agentBtn');
+    var wa = document.querySelector('.wa-btn');
+    if (fp) fp.addEventListener('click', function () { recordEvent('floor_plan_click'); });
+    if (ag) ag.addEventListener('click', function () { recordEvent('agent_card_click'); });
+    if (wa) wa.addEventListener('click', function () { recordEvent('whatsapp_click'); });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachViewerListeners);
+  } else {
+    attachViewerListeners();
+  }
+
+  // ── Anonymous session (created lazily on first interaction) ───────
+  function ensureAnonymousSession() {
+    try { anonymousSessionId = sessionStorage.getItem(SS_ANON_SESSION); } catch (e) {}
+    if (anonymousSessionId) return;
+    rpc('start_anonymous_session', {
+      p_property_code: PROPERTY_CODE,
+      p_user_agent:    navigator.userAgent
+    }).then(function (id) {
+      anonymousSessionId = id;
+      try { sessionStorage.setItem(SS_ANON_SESSION, id); } catch (e) {}
+    }).catch(function (e) { console.warn('[Fossyl] anon session:', e); });
+  }
+
+  // ── Reveal side buttons once viewer finishes loading ─────────────
+  (function () {
+    var sa = document.getElementById('sideActions');
+    if (sa) sa.classList.add('fossyl-loading');
+
+    function onViewerLoaded() {
+      viewerLoaded = true;
+      if (sa) sa.classList.remove('fossyl-loading');
+      if (interacted && !timerStarted) startCountdown();
+    }
+
+    var lw = document.getElementById('loadingWrap');
+    if (!lw || lw.classList.contains('hidden')) {
+      onViewerLoaded();
+      return;
+    }
+    var obs = new MutationObserver(function () {
+      if (lw.classList.contains('hidden')) {
+        obs.disconnect();
+        onViewerLoaded();
+      }
+    });
+    obs.observe(lw, { attributes: true, attributeFilter: ['class'] });
+  })();
+
+  // ── Returning visitor: skip modal entirely ────────────────────────
+  var storedLeadId   = null;
+  var storedVerified = null;
+  try { storedLeadId   = localStorage.getItem(LS_LEAD_ID);       } catch (e) {}
+  try { storedVerified = localStorage.getItem(LS_LEAD_VERIFIED); } catch (e) {}
+
+  if (storedLeadId && storedVerified === 'true') {
+    // Same-tab refresh: reuse sessions already in sessionStorage
+    try { anonymousSessionId = sessionStorage.getItem(SS_ANON_SESSION); } catch (e) {}
+    try { viewId             = sessionStorage.getItem(SS_VIEW_ID);       } catch (e) {}
+
+    if (!viewId) {
+      // New tab: start an anonymous session then create a view and link them
+      var getAnon = anonymousSessionId
+        ? Promise.resolve(anonymousSessionId)
+        : rpc('start_anonymous_session', {
+            p_property_code: PROPERTY_CODE,
+            p_user_agent:    navigator.userAgent
+          }).then(function (id) {
+            anonymousSessionId = id;
+            try { sessionStorage.setItem(SS_ANON_SESSION, id); } catch (e) {}
+            return id;
+          });
+
+      getAnon.then(function (anonId) {
+        return rpc('start_view_session_by_lead', {
+          p_lead_id:       storedLeadId,
+          p_property_code: PROPERTY_CODE
+        }).then(function (vid) {
+          viewId = vid;
+          try { sessionStorage.setItem(SS_VIEW_ID, vid); } catch (e) {}
+          if (anonId) {
+            return rpc('link_session_to_lead', {
+              p_session_id: anonId,
+              p_lead_id:    storedLeadId
+            });
+          }
+        });
+      }).catch(function (e) {
+        console.warn('[Fossyl] returning visitor setup:', e);
+      });
+    }
+    return;
+  }
+
+  // ── Gate agentBtn / floorplanBtn until lead verified ─────────────
+  var fossylBtnsUnlocked = false;
+
+  function fossylShowLockToast() {
+    var toast = document.getElementById('fossyl-lock-toast');
+    if (!toast) return;
+    clearTimeout(toast._hideTimer);
+    toast.classList.add('visible');
+    toast._hideTimer = setTimeout(function () { toast.classList.remove('visible'); }, 2000);
+  }
+
+  function fossylLockButtons() {
+    var sideActions = document.getElementById('sideActions');
+    if (!sideActions) return;
+    var gate = document.createElement('div');
+    gate.id = 'fossyl-btn-gate';
+    gate.addEventListener('click', function (e) {
+      e.stopPropagation();
+      fossylShowLockToast();
+    });
+    sideActions.appendChild(gate);
+    [document.getElementById('agentBtn'), document.getElementById('floorplanBtn')]
+      .forEach(function (el) { if (el) el.classList.add('fossyl-btn-locked'); });
+  }
+
+  function fossylUnlockButtons() {
+    if (fossylBtnsUnlocked) return;
+    fossylBtnsUnlocked = true;
+    var gate = document.getElementById('fossyl-btn-gate');
+    if (gate) gate.parentNode.removeChild(gate);
+    [document.getElementById('agentBtn'), document.getElementById('floorplanBtn')]
+      .forEach(function (el) { if (el) el.classList.remove('fossyl-btn-locked'); });
+  }
+
+  fossylLockButtons();
+
+  // ── Modal elements ────────────────────────────────────────────────
+  var overlay       = document.getElementById('fossyl-modal-overlay');
+  var phoneInput    = document.getElementById('fossyl-phone');
+  var sendOtpBtn    = document.getElementById('fossyl-send-otp-btn');
+  var otpRow        = document.getElementById('fossyl-otp-row');
+  var otpInput      = document.getElementById('fossyl-otp');
+  var verifyOtpBtn  = document.getElementById('fossyl-verify-otp-btn');
+  var submitBtn     = document.getElementById('fossyl-submit-btn');
+  var phoneStatus   = document.getElementById('fossyl-phone-status');
+  var otpStatus     = document.getElementById('fossyl-otp-status');
+  var verifiedBadge = document.getElementById('fossyl-verified-badge');
+  var ring          = document.getElementById('fossyl-countdown-ring');
+  var ringProg      = ring.querySelector('circle.prog');
+  var ringText      = document.getElementById('fossyl-countdown-text');
+
   function setStatus(el, msg, type) {
     el.textContent = msg;
     el.className   = 'fossyl-status ' + (type || 'info');
   }
 
-  // ── Countdown ring + modal trigger ───────────────────────────────
+  // ── Keyboard trap ─────────────────────────────────────────────────
+  function blockViewerKeys(e) { e.stopPropagation(); }
+  function installKeyTrap() {
+    document.addEventListener('keydown',  blockViewerKeys, { capture: true });
+    document.addEventListener('keyup',    blockViewerKeys, { capture: true });
+    document.addEventListener('keypress', blockViewerKeys, { capture: true });
+  }
+  function removeKeyTrap() {
+    document.removeEventListener('keydown',  blockViewerKeys, { capture: true });
+    document.removeEventListener('keyup',    blockViewerKeys, { capture: true });
+    document.removeEventListener('keypress', blockViewerKeys, { capture: true });
+  }
+
+  // ── Countdown + modal ─────────────────────────────────────────────
+  function showModal() {
+    overlay.classList.add('active');
+    installKeyTrap();
+    phoneInput.focus();
+  }
+
   function startCountdown() {
-    if (timerStarted) return;
+    if (timerStarted || !viewerLoaded) return;
     timerStarted = true;
     ring.classList.add('active');
-    remaining = TIMER_SECONDS;
+    remaining            = TIMER_SECONDS;
     ringText.textContent = remaining;
     ringProg.style.strokeDashoffset = '0';
-
     countdownId = setInterval(function () {
       remaining--;
       ringText.textContent = remaining;
-      var offset = CIRC * (1 - remaining / TIMER_SECONDS);
-      ringProg.style.strokeDashoffset = offset;
-
+      ringProg.style.strokeDashoffset = CIRC * (1 - remaining / TIMER_SECONDS);
       if (remaining <= 0) {
         clearInterval(countdownId);
         ring.classList.remove('active');
@@ -81362,10 +81620,10 @@ export { main };
   function onFirstInteraction() {
     if (interacted) return;
     interacted = true;
-    // Remove listeners after first fire
     ['pointerdown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach(function (evt) {
       document.removeEventListener(evt, onFirstInteraction, { capture: true });
     });
+    ensureAnonymousSession();
     startCountdown();
   }
 
@@ -81373,40 +81631,11 @@ export { main };
     document.addEventListener(evt, onFirstInteraction, { capture: true, passive: true });
   });
 
-  // ── Keyboard trap: block viewer key events while form is open ────
-  // Intercepts in the capture phase so the 3-D viewer's document/window
-  // listeners never receive keydown/keyup/keypress while the modal is active.
-  function blockViewerKeys(e) {
-    e.stopPropagation();
-  }
-
-  function installKeyTrap() {
-    document.addEventListener('keydown',  blockViewerKeys, { capture: true });
-    document.addEventListener('keyup',    blockViewerKeys, { capture: true });
-    document.addEventListener('keypress', blockViewerKeys, { capture: true });
-  }
-
-  function removeKeyTrap() {
-    document.removeEventListener('keydown',  blockViewerKeys, { capture: true });
-    document.removeEventListener('keyup',    blockViewerKeys, { capture: true });
-    document.removeEventListener('keypress', blockViewerKeys, { capture: true });
-  }
-
-  // ── Show / hide modal ─────────────────────────────────────────────
-  function showModal() {
-    overlay.classList.add('active');
-    installKeyTrap();
-    phoneInput.focus();
-  }
-
-  // Clicking backdrop does NOT close (user must submit or refresh)
-
   // ── Send OTP ──────────────────────────────────────────────────────
   sendOtpBtn.addEventListener('click', function () {
     var phone = phoneInput.value.trim();
     setStatus(phoneStatus, 'Sending OTP…', 'info');
     sendOtpBtn.disabled = true;
-
     fetch(SEND_OTP_ENDPOINT, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -81437,7 +81666,7 @@ export { main };
       secs--;
       if (secs <= 0) {
         clearInterval(resendTimer);
-        sendOtpBtn.disabled   = false;
+        sendOtpBtn.disabled    = false;
         sendOtpBtn.textContent = 'Resend OTP';
       } else {
         sendOtpBtn.textContent = 'Resend (' + secs + ')';
@@ -81455,7 +81684,6 @@ export { main };
     }
     setStatus(otpStatus, 'Verifying…', 'info');
     verifyOtpBtn.disabled = true;
-
     fetch(VERIFY_OTP_ENDPOINT, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -81465,13 +81693,13 @@ export { main };
     .then(function (data) {
       if (data.success) {
         otpVerified = true;
-        setStatus(otpStatus, '', 'info');
+        setStatus(otpStatus,   '', 'info');
         setStatus(phoneStatus, '', 'info');
         otpRow.classList.remove('visible');
         verifiedBadge.classList.add('visible');
-        phoneInput.disabled   = true;
-        sendOtpBtn.disabled   = true;
-        submitBtn.disabled    = false;
+        phoneInput.disabled  = true;
+        sendOtpBtn.disabled  = true;
+        submitBtn.disabled   = false;
         clearInterval(resendTimer);
       } else {
         setStatus(otpStatus, data.message || 'Incorrect OTP. Please try again.', 'error');
@@ -81486,13 +81714,13 @@ export { main };
     });
   });
 
-  // Allow pressing Enter inside OTP field to trigger verify
   otpInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') verifyOtpBtn.click();
   });
 
   // ── Success screen ────────────────────────────────────────────────
   function showSuccess() {
+    fossylUnlockButtons();
     var modal = document.getElementById('fossyl-modal');
     modal.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
     modal.style.opacity    = '0';
@@ -81513,14 +81741,13 @@ export { main };
         '</div>';
       modal.style.opacity   = '1';
       modal.style.transform = 'scale(1)';
-      // Auto-dismiss overlay after 3 s
       setTimeout(function () {
         overlay.style.transition = 'opacity 0.5s ease';
         overlay.style.opacity    = '0';
         setTimeout(function () {
           overlay.classList.remove('active');
           overlay.style.opacity = '';
-          removeKeyTrap(); // ← restore viewer keyboard control after success
+          removeKeyTrap();
         }, 500);
       }, 3000);
     }, 400);
@@ -81529,47 +81756,43 @@ export { main };
   // ── Submit ────────────────────────────────────────────────────────
   submitBtn.addEventListener('click', function () {
     if (!otpVerified) return;
-
     var phone = phoneInput.value.trim();
     var name  = document.getElementById('fossyl-name').value.trim() || null;
-
     submitBtn.disabled    = true;
     submitBtn.textContent = 'Saving…';
 
-    fetch(SUPABASE_URL + '/rest/v1/rpc/add_lead', {
-      method:  'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'apikey':        SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-      },
-      body: JSON.stringify({
-        p_phone_number: phone,
-        p_property_id:  PROPERTY_ID,
-        p_name:         name
-      })
+    // 1. get_or_create_lead → lead_id
+    rpc('get_or_create_lead', { p_phone_number: phone, p_name: name })
+    .then(function (leadId) {
+      if (!leadId) throw new Error('No lead ID returned');
+      try {
+        localStorage.setItem(LS_LEAD_ID,       leadId);
+        localStorage.setItem(LS_LEAD_VERIFIED, 'true');
+      } catch (e) {}
+      // 2. start_view_session_by_lead → view_id
+      return rpc('start_view_session_by_lead', {
+        p_lead_id:       leadId,
+        p_property_code: PROPERTY_CODE
+      }).then(function (vid) {
+        viewId = vid;
+        try { sessionStorage.setItem(SS_VIEW_ID, vid); } catch (e) {}
+        // 3. link the anonymous session that was tracking pre-OTP behaviour
+        if (anonymousSessionId) {
+          return rpc('link_session_to_lead', {
+            p_session_id: anonymousSessionId,
+            p_lead_id:    leadId
+          });
+        }
+      });
     })
-    .then(function (r) {
-      if (!r.ok) {
-        return r.json().then(function (e) { throw new Error(e.message || 'Server error ' + r.status); });
-      }
-      return r.json();
-    })
-    .then(function (uuid) {
-      // Store the UUID so future visits on any viewer skip the form
-      if (uuid) {
-        try { localStorage.setItem(STORAGE_KEY, uuid); } catch (e) {}
-      }
-      showSuccess();
-    })
+    .then(function () { showSuccess(); })
     .catch(function (err) {
-      console.error('[Fossyl] Supabase error:', err);
+      console.error('[Fossyl] Submit error:', err);
       submitBtn.disabled    = false;
       submitBtn.textContent = 'Submit';
-      // Show error below submit button
       var errEl = document.getElementById('fossyl-submit-error');
       if (!errEl) {
-        errEl = document.createElement('div');
+        errEl           = document.createElement('div');
         errEl.id        = 'fossyl-submit-error';
         errEl.className = 'fossyl-status error';
         errEl.style.marginTop = '10px';
