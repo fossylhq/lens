@@ -1713,13 +1713,6 @@
                             </svg>
                         </button>
 
-                        <button id="showCollision" class="controlButton hidden">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
-                                <g class='stroke'><use href="#voxelIcon"/></g>
-                                <g class='fill'><use href="#voxelIcon"/></g>
-                            </svg>
-                        </button>
-
                         <button id="info" class="controlButton">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
                                 <g class='stroke'><use href="#infoIcon"/></g>
@@ -1906,10 +1899,6 @@
                             <div class="control-item">
                                 <span class="control-action" data-i18n="help.action.toggle-gaming">Toggle Joystick</span>
                                 <span class="control-key">G</span>
-                            </div>
-                            <div id="desktopShowCollisionHelp" class="control-item hidden">
-                                <span class="control-action" data-i18n="help.action.show-collision">Show Collision</span>
-                                <span class="control-key">V</span>
                             </div>
                             <div class="control-item">
                                 <span class="control-action" data-i18n="help.action.play-pause">Play / Pause</span>
@@ -84144,7 +84133,6 @@ const initUI = (global) => {
         'reset', 'frame',
         'loadingText', 'loadingBar',
         'joystickBase', 'joystick',
-        'showCollision', 'desktopShowCollisionHelp',
         'tooltip',
         'annotationNav', 'annotationPrev', 'annotationNext', 'annotationInfo', 'annotationNavTitle',
         'viewerBranding', 'viewerTitle', 'appVersionLabel',
@@ -84517,17 +84505,6 @@ const initUI = (global) => {
         dom.flyCamera.classList.toggle('middle', value);
         dom.flyCamera.classList.toggle('right', !value);
     });
-    // Collision overlay toggle + matching help-panel row (only visible when overlay is available)
-    events.on('hasCollisionOverlay:changed', (value) => {
-        dom.showCollision.classList.toggle('hidden', !value);
-        dom.desktopShowCollisionHelp.classList.toggle('hidden', !value);
-    });
-    dom.showCollision.addEventListener('click', () => {
-        state.collisionOverlayEnabled = !state.collisionOverlayEnabled;
-    });
-    events.on('collisionOverlayEnabled:changed', (value) => {
-        dom.showCollision.classList.toggle('active', value);
-    });
     dom.settings.addEventListener('click', () => {
         dom.settingsPanel.classList.toggle('hidden');
     });
@@ -84563,7 +84540,6 @@ const initUI = (global) => {
     tooltip.register(dom.fpsCamera, localize('tooltip.walk-mode'), 'top');
     tooltip.register(dom.reset, localize('tooltip.reset-camera'), 'bottom');
     tooltip.register(dom.frame, localize('tooltip.frame-scene'), 'bottom');
-    tooltip.register(dom.showCollision, localize('tooltip.show-collision'), 'top');
     tooltip.register(dom.settings, localize('tooltip.settings'), 'top');
     tooltip.register(dom.info, localize('tooltip.help'), 'top');
     tooltip.register(dom.arMode, localize('tooltip.enter-ar'), 'top');
