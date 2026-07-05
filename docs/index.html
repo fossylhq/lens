@@ -1087,7 +1087,7 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
             const skyboxUrl = url.searchParams.get('skybox');
             const collisionUrl = url.searchParams.get('collision') ?? 'https://files.catbox.moe/rpteet.json';
             const settingsUrl = url.searchParams.has('settings') ? url.searchParams.get('settings') : './settings.json';
-            const contentUrl = url.searchParams.has('content') ? url.searchParams.get('content') : 'https://files.catbox.moe/ngzw7n.sog'; 
+            const contentUrl = url.searchParams.has('content') ? url.searchParams.get('content') : 'https://file.garden/akqmiOgNuCMnLJoc/RD00001.sog'; 
 
             const renderer = url.searchParams.has('webgl') ? 'webgl' : 'webgpu';
 
@@ -1099,7 +1099,7 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
                 skyboxUrl,
                 collisionUrl,
                 contentUrl,
-                content: fetch('https://files.catbox.moe/ngzw7n.sog'),
+                content: fetch('https://file.garden/akqmiOgNuCMnLJoc/RD00001.sog'),
 				noui: url.searchParams.has('noui'),
                 noanim: url.searchParams.has('noanim'),
                 nofx: url.searchParams.has('nofx'),
