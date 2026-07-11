@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy · Fossyl</title>
+  <meta name="description" content="How Fossyl collects, uses, and erases your personal data. Digital Personal Data Protection Act, 2023.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css">
+
+  <style>
+    :root {
+      --bg:        #f4f4f3;
+      --surface:   #fbfbfa;
+      --surface-2: #efefed;
+      --ink:       #16161a;
+      --ink-2:     #54545a;
+      --ink-3:     #6b6b71;
+      --line:      #e2e2df;
+      --line-2:    #d4d4d0;
+      --accent:    #16161a;
+      --on-accent: #fbfbfa;
+    }
+    .dark {
+      --bg:        #000000;
+      --surface:   #111111;
+      --surface-2: #1a1a1a;
+      --ink:       #f3f3f1;
+      --ink-2:     #b4b4b9;
+      --ink-3:     #97979e;
+      --line:      #242424;
+      --line-2:    #313135;
+      --accent:    #f3f3f1;
+      --on-accent: #111113;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Manrope', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      transition: background 200ms ease, color 200ms ease;
+    }
+    body, body * { font-weight: 400; }
+
+    .tnum { font-variant-numeric: tabular-nums; }
+
+    /* ── top bar ─────────────────────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+    }
+    .bar {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0.9rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .lockup { display: flex; align-items: baseline; gap: 8px; }
+    .lockup .name { font-size: 20px; letter-spacing: -0.2px; }
+    .lockup .by   { font-size: 12px; color: var(--ink-3); }
+
+    .theme-btn {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+    .theme-btn:hover { background: var(--surface-2); }
+    .theme-btn i { font-size: 18px; line-height: 1; }
+    .theme-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink);
+    }
+
+    /* ── page ────────────────────────────────────────────────── */
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 3rem 1.25rem 5rem;
+    }
+
+    .title { font-size: 2rem; line-height: 1.25; margin: 0 0 0.5rem; }
+    .updated { font-size: 12px; color: var(--ink-3); margin: 0 0 0.75rem; }
+
+    .lede {
+      font-size: 15px;
+      color: var(--ink-2);
+      margin: 0 0 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section { margin-bottom: 2.75rem; }
+    h2 {
+      font-size: 20px;
+      letter-spacing: -0.2px;
+      margin: 0 0 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2 i { font-size: 22px; line-height: 1; color: var(--ink-3); }
+
+    p { margin: 0 0 1rem; color: var(--ink-2); }
+    p.lead-ink { color: var(--ink); }
+    strong { color: var(--ink); }
+
+    a {
+      color: var(--ink);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      text-decoration-color: var(--line-2);
+      transition: text-decoration-color 160ms ease;
+    }
+    a:hover { text-decoration-color: var(--ink); }
+    a:focus-visible {
+      outline: none;
+      border-radius: 4px;
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink);
+    }
+
+    ul { margin: 0 0 1rem; padding-left: 1.1rem; color: var(--ink-2); }
+    li { margin-bottom: 0.5rem; }
+    li::marker { color: var(--ink-3); }
+
+    /* ── tables ──────────────────────────────────────────────── */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+      margin-bottom: 1.25rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      min-width: 460px;
+    }
+    th {
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-3);
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink-2);
+      vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    td:first-child { color: var(--ink); width: 38%; }
+
+    /* ── callout ─────────────────────────────────────────────── */
+    .callout {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface-2);
+      padding: 1rem 1.15rem;
+      margin-bottom: 1.25rem;
+    }
+    .callout p:last-child { margin-bottom: 0; }
+
+    /* ── contact ─────────────────────────────────────────────── */
+    .contact {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+      padding: 1.15rem 1.25rem;
+    }
+    .contact .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-3);
+      margin-bottom: 6px;
+    }
+    .contact .value { color: var(--ink); }
+
+    footer {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--ink-3);
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 600px) {
+      main { padding-top: 2rem; }
+      .title { font-size: 1.6rem; }
+      td:first-child { width: auto; }
+    }
+
+    /* ── motion ──────────────────────────────────────────────── */
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0);   }
+    }
+    main { animation: fade-up 0.45s ease both; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="bar">
+      <div class="lockup">
+        <span class="name">Fossyl</span>
+        <span class="by">capture.preserve.experience</span>
+      </div>
+      <button class="theme-btn" id="theme-btn" type="button" aria-label="Toggle theme">
+        <i class="ph-thin ph-moon" id="theme-icon"></i>
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <h1 class="title">Privacy Policy</h1>
+    <p class="updated tnum">Last updated: 11 July 2026</p>
+    <p class="lede">
+      This explains what we collect when you use a Fossyl property viewer, why we collect it,
+      who we give it to, and how to have it erased. We keep it short and plain, because a
+      policy you cannot read is not a policy you have agreed to.
+    </p>
+
+    <section>
+      <h2><i class="ph-thin ph-buildings"></i>1. Who we are</h2>
+      <p>
+        This property viewer is operated by <strong>Fossyl</strong>, operating from Mangaluru, India.
+        We provide an interactive 3D property viewer on behalf of the property developer or builder
+        listing the property (the <strong>Builder</strong>).
+      </p>
+      <p>
+        Under the Digital Personal Data Protection Act, 2023 (the <strong>DPDP Act</strong>) we are a
+        Data Fiduciary for the data described below. The Builder is a Data Fiduciary in its own right
+        for the sales follow-up it carries out using your details.
+      </p>
+      <div class="contact">
+        <div class="label">Privacy matters and grievances</div>
+        <div class="value">
+          <a href="mailto:support.fossylhq@gmail.com">support.fossylhq@gmail.com</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2><i class="ph-thin ph-list-magnifying-glass"></i>2. What we collect and why</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Data</th>
+              <th scope="col">Why we need it</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Your mobile number, with country code</td>
+              <td>To verify you are a real person (by OTP) and to let the Builder contact you about this property</td>
+            </tr>
+            <tr>
+              <td>The OTP you enter</td>
+              <td>To confirm the number is yours</td>
+            </tr>
+            <tr>
+              <td>Your name (optional, you may leave it blank)</td>
+              <td>To let the Builder address you by name</td>
+            </tr>
+            <tr>
+              <td>Which property you viewed</td>
+              <td>To tell the Builder which property you enquired about</td>
+            </tr>
+            <tr>
+              <td>How long you actively viewed it, and whether you opened the floor plan, the agent card, or WhatsApp</td>
+              <td>To help the Builder judge your interest and prioritise their response</td>
+            </tr>
+            <tr>
+              <td>Your browser's user-agent string</td>
+              <td>To display the viewer correctly and to prevent abuse of the OTP system</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        We store a session identifier and, after you submit your details, a lead identifier in your
+        browser, so we do not ask you for the same details twice.
+      </p>
+      <p>
+        We do not collect your email address, your location, financial information, or any government
+        identifier such as Aadhaar or PAN.
+      </p>
+    </section>
+
+    <section>
+      <h2><i class="ph-thin ph-check-square-offset"></i>3. Consent</h2>
+      <p class="lead-ink">We process your personal data only with your consent.</p>
+      <p>
+        You give it by ticking the consent box in the enquiry form. The box is never pre-ticked.
+        Until you tick it and verify your number, we do not create a lead record.
+      </p>
+      <p>
+        When you consent, we record the time of consent, the version of this policy you were shown,
+        and the purposes listed above. If we later want to use your data for a purpose not listed in
+        section 2, we will ask you again. Your earlier consent does not carry over.
+      </p>
+    </section>
+
+    <section>
+      <h2><i class="ph-thin ph-share-network"></i>4. Who we share it with</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Recipient</th>
+              <th scope="col">What they get</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>The Builder whose property you viewed</td>
+              <td>Your number, your name if given, the property, and your engagement with the listing, so they can respond to your enquiry</td>
+            </tr>
+            <tr>
+              <td>Twilio, our SMS provider</td>
+              <td>Your number and the OTP, to deliver the verification message</td>
+            </tr>
+            <tr>
+              <td>Supabase, our database provider</td>
+              <td>The data listed in section 2</td>
+            </tr>
+            <tr>
+              <td>WhatsApp (Meta), if the Builder messages you there</td>
+              <td>Your number. That conversation is then governed by WhatsApp's own policy</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Twilio and Supabase act only on our instructions. They may process data on servers outside
+        India. We do not transfer data to any country restricted by the Central Government under
+        section 16 of the DPDP Act.
+      </p>
+      <p>We disclose data to law enforcement or regulators only where Indian law compels us to.</p>
+    </section>
+
+    <section>
+      <h2><i class="ph-thin ph-timer"></i>5. How long we keep it, and how to be erased</h2>
+      <p>
+        We erase your data when you ask us to. Email
+        <a href="mailto:support.fossylhq@gmail.com">support.fossylhq@gmail.com</a>.
+        Once we have verified your identity through the phone number that is to be deleted, we will
+        delete your record and instruct our providers to do the same, unless a law requires us to
+        keep it. Withdrawing your consent has the same effect.
+      </p>
+      <p>
+        OTP codes are held for the few minutes needed to verify your number, then discarded.
+      </p>
+    </section>
+
+    <section>
+      <h2><i class="ph-thin ph-baby"></i>6. Children</h2>
+      <p>
+        This viewer is not for anyone under 18. We do not knowingly collect data about children, and
+        we do not track, profile, or advertise to them. If you believe a child has given us data,
+        email us and we will erase it.
+      </p>
+    </section>
+
+    <section>
+      <h2><i class="ph-thin ph-lock-simple"></i>7. Security</h2>
+      <p>
+        We protect your data with reasonable safeguards: encrypted connections (HTTPS),
+        access-controlled database storage, and OTP verification so a number cannot be submitted by
+        someone other than its owner.
+      </p>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>Fossyl · Mangaluru, India</span>
+    <span><a href="mailto:support.fossylhq@gmail.com">support.fossylhq@gmail.com</a></span>
+  </footer>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var btn  = document.getElementById('theme-btn');
+      var icon = document.getElementById('theme-icon');
+
+      function apply(dark) {
+        root.classList.toggle('dark', dark);
+        icon.className = dark ? 'ph-thin ph-sun' : 'ph-thin ph-moon';
+      }
+
+      var stored = null;
+      try { stored = localStorage.getItem('fossyl_theme'); } catch (e) {}
+
+      var dark = stored
+        ? stored === 'dark'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      apply(dark);
+
+      btn.addEventListener('click', function () {
+        dark = !root.classList.contains('dark');
+        apply(dark);
+        try { localStorage.setItem('fossyl_theme', dark ? 'dark' : 'light'); } catch (e) {}
+      });
+    })();
+  </script>
+
+</body>
+</html>
