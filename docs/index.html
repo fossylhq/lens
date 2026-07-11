@@ -1065,6 +1065,33 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
 #fossyl-submit-btn:hover:not(:disabled) { opacity: 0.9; }
 #fossyl-submit-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
+/* privacy link in the viewer's info dialog, pushed to the far corner of the
+   tab row. Reads as plain text until hovered. */
+#infoPanel > #infoPanelContent > #tabs > #fossyl-privacy-link {
+  margin-left: auto !important;
+  align-self: center !important;
+  padding: 6px 10px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  color: var(--ink-3) !important;
+  text-decoration: none !important;
+  cursor: default !important;
+  transition: color 0.15s ease, background 0.15s ease !important;
+}
+#infoPanel > #infoPanelContent > #tabs > #fossyl-privacy-link:hover {
+  color: var(--ink) !important;
+  background: var(--surface-2) !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px !important;
+  cursor: pointer !important;
+}
+#infoPanel > #infoPanelContent > #tabs > #fossyl-privacy-link:focus-visible {
+  outline: none !important;
+  color: var(--ink) !important;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink) !important;
+}
+
 /* hide side buttons until viewer finishes loading */
 #sideActions { transition: opacity 0.35s ease; }
 #sideActions.fossyl-loading { opacity: 0 !important; pointer-events: none !important; }
@@ -2101,6 +2128,10 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
                     <div id="tabs">
                         <div id="desktopTab" class="tab active" data-i18n="help.tab.desktop">Desktop</div>
                         <div id="touchTab" class="tab" data-i18n="help.tab.touch">Touch</div>
+                        <a id="fossyl-privacy-link"
+                           href="https://lens.fossyl.dedyn.io/privacy.html"
+                           target="_blank"
+                           rel="noopener noreferrer">Privacy</a>
                     </div>
                 </div>
             </div>
@@ -83212,7 +83243,7 @@ var enJson = {
 	"tooltip.frame-scene": "Frame Scene",
 	"tooltip.show-collision": "Show Collision",
 	"tooltip.settings": "Settings",
-	"tooltip.help": "Help",
+	"tooltip.help": "Info",
 	"tooltip.enter-ar": "Enter AR",
 	"tooltip.enter-vr": "Enter VR",
 	"tooltip.fullscreen": "Fullscreen",
