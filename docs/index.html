@@ -1006,6 +1006,54 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
 /* divider */
 .fossyl-divider { height: 1px; background: var(--f-line); margin: 20px 0; }
 
+/* consent (DPDP: clear affirmative action, never pre-ticked) */
+#fossyl-consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 18px;
+  cursor: pointer;
+}
+#fossyl-consent-box {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 4px;
+  border: 1px solid var(--f-line-2);
+  background: var(--f-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+#fossyl-consent-box i {
+  font-size: 13px;
+  line-height: 1;
+  color: var(--f-on-accent);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+#fossyl-consent-row.checked #fossyl-consent-box {
+  background: var(--f-accent);
+  border-color: var(--f-accent);
+}
+#fossyl-consent-row.checked #fossyl-consent-box i { opacity: 1; }
+#fossyl-consent-box:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--f-surface), 0 0 0 4px var(--f-ink);
+}
+#fossyl-consent-text {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--f-ink-2);
+}
+#fossyl-consent-text a {
+  color: var(--f-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* submit (primary = accent) */
 #fossyl-submit-btn {
   width: 100%;
@@ -1028,8 +1076,12 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
   bottom: max(80px, calc(env(safe-area-inset-bottom) + 80px));
   right: max(16px, env(safe-area-inset-right));
   z-index: 99998;
-  width: 48px;
-  height: 48px;
+  /* border-box so the viewer's global box-sizing can't shrink the content
+     area under the 1px border and push the SVG off-center */
+  box-sizing: border-box;
+  width: 52px;
+  height: 52px;
+  padding: 0;
   cursor: default;
 }
 #fossyl-countdown-ring.active {
@@ -1046,6 +1098,12 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
   from { opacity: 0; transform: scale(0.82); }
   to   { opacity: 1; transform: scale(1);    }
 }
+#fossyl-countdown-ring svg {
+  display: block;      /* kill the inline-baseline gap that shifts the ring down */
+  width: 100%;         /* fill the chip rather than assume a 48px content box */
+  height: 100%;
+  overflow: visible;
+}
 #fossyl-countdown-ring svg circle.track {
   fill: none;
   stroke: rgba(255,255,255,0.12);
@@ -1058,8 +1116,6 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
   stroke-linecap: round;
   stroke-dasharray: 125.66;   /* 2π × 20 */
   stroke-dashoffset: 0;
-  transform: rotate(-90deg);
-  transform-origin: center;
   transition: stroke-dashoffset 1s linear;
 }
 #fossyl-countdown-ring svg text {
@@ -1185,8 +1241,8 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
       }
       @media (max-width: 360px) { #poster { width: min(180px, 55vw) !important; } }
 
-      /* ── hide original supersplat branding ───────────────────── */
-      #supersplatBranding { display: none !important; }
+      /* ── hide original fossyl branding ───────────────────── */
+      #fossylBranding { display: none !important; }
 
       /* ── loading text + bar (fossyl: ink text, 4px, brand fill) ─ */
       #loadingText {
@@ -1643,9 +1699,9 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
         <div id="ui">
             <div id="poster"></div>
 
-            <!-- SuperSplat Branding -->
+            <!-- Fossyl Branding -->
             <a id="viewerBranding" class="hidden" target="_blank" rel="noopener noreferrer">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="64 64 384 384" role="img" aria-label="SuperSplat">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="64 64 384 384" role="img" aria-label="Fossyl">
                     <path
                         fill="#F26722"
                         d="M129.83,217c9.75,0,17.64-7.9,17.64-17.64s-7.9-17.64-17.64-17.64-17.64,7.9-17.64,17.64,7.9,17.64,17.64,17.64Z"
@@ -1667,7 +1723,7 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
                         d="M309.78,284.71c0,7.95-6.44,14.38-14.38,14.38s-14.38-6.44-14.38-14.38v-22.95c0-7.95,6.44-14.38,14.38-14.38s14.38,6.44,14.38,14.38v22.95Z"
                     />
                 </svg>
-                <span>SuperSplat</span>
+                <span>Fossyl</span>
             </a>
 
             <!-- Loading Indicator -->
@@ -1800,10 +1856,10 @@ select#fossyl-country:disabled { opacity: 0.55; cursor: not-allowed; }
                 <div id="infoPanelContent" onpointerdown="event.stopPropagation()" onwheel="event.stopPropagation()">
                     <a id="viewerTitle" target="_blank" rel="noopener noreferrer">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32">
-                            <g class='stroke'><use href="#supersplatIcon"/></g>
-                            <g class='fill'><use href="#supersplatIcon"/></g>
+                            <g class='stroke'><use href="#fossylIcon"/></g>
+                            <g class='fill'><use href="#fossylIcon"/></g>
                         </svg>
-                        <span class="title-name">SuperSplat Viewer</span>
+                        <span class="title-name">Fossyl Viewer</span>
                         <span class="title-version">v<span id="appVersionLabel"></span></span>
                     </a>
                     <div id="infoPanels">
@@ -8083,7 +8139,7 @@ class GraphicsDevice extends EventHandler {
 		super();
 		this.canvas = canvas;
 		if ("setAttribute" in canvas) {
-			canvas.setAttribute("data-engine", `PlayCanvas ${version$1}`);
+			canvas.setAttribute("data-engine", `Fossyl ${version$1}`);
 		}
 		this.initOptions = { ...options };
 		(_a = this.initOptions).alpha ?? (_a.alpha = true);
@@ -69894,7 +69950,7 @@ const createResources = async (device, gltf, bufferViews, textures, options) => 
 	if (preprocess) {
 		preprocess(gltf);
 	}
-	if (gltf.asset && gltf.asset.generator === "PlayCanvas") ;
+	if (gltf.asset && gltf.asset.generator === "Fossyl") ;
 	const nodeInstancingMap = /* @__PURE__ */ new Map();
 	const nodes = createNodes(gltf, options, nodeInstancingMap);
 	const scenes = createScenes(gltf, nodes);
@@ -82139,11 +82195,11 @@ class MeshCollision {
     }
     // ---- Static factory ----
     /**
-     * Load a GLB file via the PlayCanvas asset system, extract mesh geometry,
+     * Load a GLB file via the Fossyl asset system, extract mesh geometry,
      * and construct a MeshCollision. The GLB entity is not added to the scene;
      * only the vertex/index data is used.
      *
-     * @param app - PlayCanvas application instance.
+     * @param app - Fossyl application instance.
      * @param url - URL to the .glb file.
      * @returns A promise resolving to a MeshCollision.
      */
@@ -82973,7 +83029,7 @@ class VoxelCollision {
 }
 /**
  * Legacy v1.0 adapter that negates X/Y on inputs and outputs to convert
- * between PlayCanvas world space and the raw voxel data coordinate system.
+ * between Fossyl world space and the raw voxel data coordinate system.
  */
 class FlippedVoxelCollision extends VoxelCollision {
     get flipXY() {
@@ -84310,7 +84366,6 @@ const initUI = (global) => {
     // XR sessions require a WebGL device. Under WebGPU, prompt the user to reload
     // the viewer with the WebGL renderer before starting AR/VR. Use replace() so
     // the renderer-switch reload doesn't add a back-button entry — important
-    // because the viewer often runs inside an iframe (e.g. superspl.at /scene).
     const reloadWithWebgl = () => {
         const reloadUrl = new URL(location.href);
         reloadUrl.searchParams.set('webgl', '');
@@ -84808,7 +84863,7 @@ class Annotation extends Script {
     }
     /**
      * Creates a circular hotspot texture.
-     * @param {AppBase} app - The PlayCanvas AppBase
+     * @param {AppBase} app - The Fossyl AppBase
      * @param {string} label - Label text to draw on the hotspot
      * @param {number} [size] - The texture size (should be power of 2)
      * @param {number} [borderWidth] - The border width in pixels
@@ -86765,8 +86820,8 @@ class WalkController {
      * Uses 5 rays (center + 4 cardinal at capsule radius) to spatially filter
      * noisy collision heights, giving the spring a smoother target.
      *
-     * @param pos - Eye position in PlayCanvas world space.
-     * @returns Average ground surface Y in PlayCanvas space, or null if no ground found.
+     * @param pos - Eye position in Fossyl world space.
+     * @returns Average ground surface Y in Fossyl space, or null if no ground found.
      */
     _probeGround(pos) {
         if (!this.collision)
@@ -86799,7 +86854,7 @@ class WalkController {
      * Check for capsule collision and apply push-out displacement.
      * Handles walls, ceiling hits, and fallback floor contact when airborne.
      *
-     * @param pos - Eye position in PlayCanvas world space.
+     * @param pos - Eye position in Fossyl world space.
      * @param disp - Pre-allocated vector to receive the collision push-out displacement.
      */
     _checkCollision(pos, disp) {
@@ -87419,7 +87474,7 @@ class DebugPanel {
             sel?.addRange(range);
         });
         // Stop key events from bubbling to the canvas / window listeners
-        // (PlayCanvas KeyboardMouseSource and the wheel/key interrupt
+        // (Fossyl KeyboardMouseSource and the wheel/key interrupt
         // listeners) so arrow keys, WASD, etc. behave as text editing
         // instead of moving the camera.
         const stopKey = (e) => e.stopPropagation();
@@ -87514,7 +87569,7 @@ class DebugPanel {
     _screenshot() {
         const app = this._global.app;
         const canvas = app.graphicsDevice.canvas;
-        // PlayCanvas runs with preserveDrawingBuffer off, so the canvas
+        // Fossyl runs with preserveDrawingBuffer off, so the canvas
         // pixels are only readable in the same task as the render. Force
         // a render and capture in frameend.
         app.renderNextFrame = true;
@@ -87531,7 +87586,7 @@ class DebugPanel {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `supersplat-viewer.${ext}`;
+                a.download = `fossyl-viewer.${ext}`;
                 a.click();
                 URL.revokeObjectURL(url);
                 this._flash(this._screenshotButton);
@@ -88226,7 +88281,7 @@ class KeyboardMouseDevice {
      * toggle its private pointer-lock flag, which gates how it consumes
      * mouse-delta events.
      *
-     * @returns The PlayCanvas KeyboardMouseSource backing this device.
+     * @returns The Fossyl KeyboardMouseSource backing this device.
      */
     get source() {
         return this._source;
@@ -88725,7 +88780,7 @@ class InputController {
 //      hidden.
 //
 // All three passes use BLEND_NORMAL so they share the layer's *transparent*
-// render action. PlayCanvas creates separate opaque and transparent render
+// render action. Fossyl creates separate opaque and transparent render
 // actions per layer and `clearDepthBuffer` clears the depth buffer for each
 // of them — if the depth pre-pass were opaque, the transparent action would
 // wipe the depth before pass 2 and FUNC_EQUAL would always fail.
@@ -90572,7 +90627,7 @@ class VoxelDebugOverlay {
         this.vpTemp.mul2(cam.projectionMatrix, cam.viewMatrix);
         this.invVP.copy(this.vpTemp).invert();
         // For legacy v1.0 data, pre-multiply invVP by R_z180 (negate X/Y rows)
-        // to transform rays from PlayCanvas world space into the raw voxel space
+        // to transform rays from Fossyl world space into the raw voxel space
         if (collision.flipXY) {
             const d = this.invVP.data;
             d[0] = -d[0];
@@ -91054,7 +91109,7 @@ class Viewer {
     }
 }
 
-/** @import { XrInputSource } from 'playcanvas' */
+/** @import { XrInputSource } from 'fossyl' */
 
 /**
  * Automatically loads and displays WebXR controller models (hands or gamepads) based on the
@@ -91095,7 +91150,7 @@ class XrControllers extends Script {
     /**
      * Map of input sources to their controller data (entity, joint mappings, and asset).
      *
-     * @type {Map<XrInputSource, { entity: import('playcanvas').Entity, jointMap: Map, asset: import('playcanvas').Asset }>}
+     * @type {Map<XrInputSource, { entity: import('fossyl').Entity, jointMap: Map, asset: import('fossyl').Asset }>}
      */
     controllers = new Map();
 
@@ -91216,7 +91271,7 @@ class XrControllers extends Script {
      * @param {XrInputSource} inputSource - The input source.
      * @param {string[]} profiles - Array of profile IDs to try.
      * @param {number} [index=0] - Current index in the profiles array.
-     * @returns {Promise<{ profileId: string, asset: import('playcanvas').Asset } | null>} The result or null.
+     * @returns {Promise<{ profileId: string, asset: import('fossyl').Asset } | null>} The result or null.
      * @private
      */
     async _tryLoadProfiles(inputSource, profiles, index = 0) {
@@ -91294,7 +91349,7 @@ class XrControllers extends Script {
      *
      * @param {XrInputSource} inputSource - The input source.
      * @param {string} profileId - The profile ID to load.
-     * @returns {Promise<{ profileId: string, asset: import('playcanvas').Asset } | null>} The result or null on failure.
+     * @returns {Promise<{ profileId: string, asset: import('fossyl').Asset } | null>} The result or null on failure.
      * @private
      */
     async _loadProfile(inputSource, profileId) {
@@ -91382,7 +91437,7 @@ class XrControllers extends Script {
     }
 }
 
-/** @import { XrInputSource } from 'playcanvas' */
+/** @import { XrInputSource } from 'fossyl' */
 
 /**
  * Handles VR navigation with support for teleportation, smooth locomotion, snap or smooth
@@ -91607,7 +91662,7 @@ class XrNavigation extends Script {
     rayColor = new Color();
 
     // Camera reference for movement calculations
-    /** @type {import('playcanvas').Entity | null} */
+    /** @type {import('fossyl').Entity | null} */
     cameraEntity = null;
 
     initialize() {
@@ -91641,12 +91696,12 @@ class XrNavigation extends Script {
 
             // First try to find by name - cast to Entity since we know it should be one
             const foundByName = this.entity.findByName('camera');
-            this.cameraEntity = /** @type {import('playcanvas').Entity | null} */ (foundByName);
+            this.cameraEntity = /** @type {import('fossyl').Entity | null} */ (foundByName);
 
             // If not found, search children for entity with camera component
             if (!this.cameraEntity) {
                 for (const child of this.entity.children) {
-                    const childEntity = /** @type {import('playcanvas').Entity} */ (child);
+                    const childEntity = /** @type {import('fossyl').Entity} */ (child);
                     if (childEntity.camera) {
                         this.cameraEntity = childEntity;
                         break;
@@ -92267,7 +92322,6 @@ const main = async (canvas, settingsJson, config) => {
     // Create the viewer
     return new Viewer(global, gsplatLoad, skyboxLoad, collisionLoad);
 };
-console.log(`SuperSplat Viewer v${version} | Engine v${version$1} (${revision})`);
 
 export { main };
 //# sourceMappingURL=index.js.map
@@ -92499,7 +92553,7 @@ export { main };
           var w = document.createTreeWalker(panel, NodeFilter.SHOW_TEXT, null, false);
           var n;
           while ((n = w.nextNode())) {
-            if (/supersplat/i.test(n.nodeValue) && n.parentElement && n.parentElement.id !== 'infoPanel') {
+            if (/fossyl/i.test(n.nodeValue) && n.parentElement && n.parentElement.id !== 'infoPanel') {
               n.parentElement.style.display = 'none';
             }
           }
@@ -92598,7 +92652,7 @@ export { main };
 <div id="fossyl-countdown-ring" aria-hidden="true">
   <svg viewBox="0 0 48 48" width="48" height="48">
     <circle class="track" cx="24" cy="24" r="20"/>
-    <circle class="prog"  cx="24" cy="24" r="20"/>
+    <circle class="prog"  cx="24" cy="24" r="20" transform="rotate(-90 24 24)"/>
     <text x="24" y="24" id="fossyl-countdown-text">20</text>
   </svg>
 </div>
@@ -92867,9 +92921,21 @@ export { main };
       />
     </div>
 
-    <div class="fossyl-divider"></div>
+    <!-- Consent. DPDP Act 2023 s.6: clear affirmative action. Never pre-ticked. -->
+    <div id="fossyl-consent-row" role="checkbox" aria-checked="false" tabindex="0"
+         aria-labelledby="fossyl-consent-text">
+      <div id="fossyl-consent-box" aria-hidden="true">
+        <i class="ph-thin ph-check"></i>
+      </div>
+      <div id="fossyl-consent-text">
+        By clicking on submit, I agree to the
+        <a href="https://lens.fossyl.dedyn.io/privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+      </div>
+    </div>
+    <div id="fossyl-consent-status" class="fossyl-status"></div>
 
-    <button id="fossyl-submit-btn" class="fossyl-btn" type="button">
+    <button id="fossyl-submit-btn" class="fossyl-btn" type="button"
+            style="margin-top:16px;">
       Submit
     </button>
 
@@ -92891,6 +92957,9 @@ export { main };
   var SUPABASE_URL      = 'https://ejypauevukftgbbbnqdg.supabase.co';
   var SUPABASE_ANON_KEY = 'sb_publishable_ZmOuLTSoWD9-bj1ffZ-EWw_6chDrxZj';
   var PROPERTY_CODE     = 'RD00001';
+
+  var POLICY_VERSION    = '2026-07-11.v1';
+  var POLICY_URL        = 'https://lens.fossyl.dedyn.io/privacy.html';
 
   var LS_LEAD_ID       = 'fossyl_lead_id';
   var LS_LEAD_VERIFIED = 'fossyl_lead_verified';
@@ -92929,6 +92998,8 @@ export { main };
   var anonymousSessionId = null;
   var viewId             = null;
   var otpVerified        = true;
+  var consentGiven       = false;
+  var consentAt          = null;
   var interacted         = false;
   var timerStarted       = false;
   var viewerLoaded       = false;
@@ -93087,6 +93158,8 @@ export { main };
   var phoneStatus   = document.getElementById('fossyl-phone-status');
   var otpStatus     = document.getElementById('fossyl-otp-status');
   var verifiedBadge = document.getElementById('fossyl-verified-badge');
+  var consentRow    = document.getElementById('fossyl-consent-row');
+  var consentStatus = document.getElementById('fossyl-consent-status');
   var ring          = document.getElementById('fossyl-countdown-ring');
   var ringProg      = ring.querySelector('circle.prog');
   var ringText      = document.getElementById('fossyl-countdown-text');
@@ -93095,6 +93168,33 @@ export { main };
     el.textContent = msg;
     el.className   = 'fossyl-status ' + (type || 'info');
   }
+
+  // ── Consent (DPDP Act 2023 s.6) ───────────────────────────────────
+  // Submit stays disabled until the phone is verified AND consent is
+  // ticked. The tick is the affirmative action; consentAt is the proof.
+  function updateSubmitState() {
+    submitBtn.disabled = !(otpVerified && consentGiven);
+  }
+
+  function toggleConsent() {
+    consentGiven = !consentGiven;
+    consentAt    = consentGiven ? new Date().toISOString() : null;
+    consentRow.classList.toggle('checked', consentGiven);
+    consentRow.setAttribute('aria-checked', consentGiven ? 'true' : 'false');
+    if (consentGiven) setStatus(consentStatus, '', 'info');
+    updateSubmitState();
+  }
+
+  consentRow.addEventListener('click', function (e) {
+    if (e.target.tagName === 'A') return;   // let the policy link open
+    toggleConsent();
+  });
+  consentRow.addEventListener('keydown', function (e) {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      toggleConsent();
+    }
+  });
 
   function getFullPhone() {
     var local = phoneInput.value.replace(/\D/g, '');
@@ -93270,7 +93370,7 @@ export { main };
         phoneInput.disabled   = true;
         countryInput.disabled = true;
         sendOtpBtn.disabled   = true;
-        submitBtn.disabled    = false;
+        updateSubmitState();
         clearInterval(resendTimer);
       } else {
         setStatus(otpStatus, data.message || 'Incorrect OTP. Please try again.', 'error');
@@ -93326,6 +93426,10 @@ export { main };
   // ── Submit ────────────────────────────────────────────────────────
   submitBtn.addEventListener('click', function () {
     if (!otpVerified) return;
+    if (!consentGiven) {
+      setStatus(consentStatus, 'Please agree before submitting.', 'error');
+      return;
+    }
     var errMsg = validatePhone();
     if (errMsg) {
       setStatus(phoneStatus, errMsg, 'error');
@@ -93353,6 +93457,18 @@ export { main };
         anonymousSessionId = null;
         try { sessionStorage.setItem(SS_VIEW_ID, vid);   } catch (e) {}
         try { sessionStorage.removeItem(SS_ANON_SESSION); } catch (e) {}
+
+        // 3. Record the consent itself. This is the audit trail that proves
+        //    what was agreed to, and when, if it is ever challenged.
+        recordEvent('consent_given', {
+          consented_at:   consentAt,
+          policy_version: POLICY_VERSION,
+          policy_url:     POLICY_URL,
+          purposes:       ['otp_verification', 'share_with_builder',
+                           'builder_contact_call_sms_whatsapp',
+                           'engagement_analytics'],
+          method:         'checkbox_unticked_by_default'
+        });
       });
     })
     .then(function () { showSuccess(); })
